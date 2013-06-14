@@ -25,6 +25,10 @@ const (
 var (
 	// pong allows replies from pong to write directly without waiting on sleeps
 	pong = []byte("PONG")
+	// logger to use, can be set to customize logging for this package
+	Log = func(format string, args ...interface{}) {
+		log.Printf(format, args...)
+	}
 )
 
 // Format strings for errors and logging output
@@ -183,7 +187,7 @@ func (c *IrcClient) pump() {
 				sleeper = nil
 			}
 		case <-c.killpump:
-			log.Printf(fmtErrPumpClosed, c.name, errMsgShutdown)
+			Log(fmtErrPumpClosed, c.name, errMsgShutdown)
 			return
 		}
 	}
@@ -199,10 +203,10 @@ func (c *IrcClient) writeMessage(msg []byte) error {
 		n, err = c.conn.Write(msg[written:])
 		wrote := msg[written : len(msg)-2]
 		if err != nil {
-			log.Printf(fmtWriteErr, c.name, err, wrote)
+			Log(fmtWriteErr, c.name, err, wrote)
 			return err
 		}
-		log.Printf(fmtWrite, c.name, wrote)
+		Log(fmtWrite, c.name, wrote)
 		c.lastwrite = time.Now()
 	}
 	return nil
@@ -228,7 +232,7 @@ func (c *IrcClient) siphon() {
 		}
 
 		if err != nil {
-			log.Printf(fmtErrSiphonReadError, c.name, err)
+			Log(fmtErrSiphonReadError, c.name, err)
 			break
 		}
 	}
@@ -254,7 +258,7 @@ func (c *IrcClient) extractMessages(buf []byte) (int, bool) {
 		copy(cpy, chunk[:len(chunk)-2])
 		select {
 		case c.siphonchan <- cpy:
-			log.Printf(fmtRead, c.name, cpy)
+			Log(fmtRead, c.name, cpy)
 			return false
 		case <-c.killsiphon:
 			return true

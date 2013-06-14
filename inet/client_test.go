@@ -5,8 +5,6 @@ import (
 	"github.com/aarondl/ultimateq/mocks"
 	"io"
 	. "launchpad.net/gocheck"
-	"log"
-	"os"
 	"sync"
 	"testing"
 	"time"
@@ -18,12 +16,7 @@ type s struct{}
 var _ = Suite(&s{})
 
 func init() {
-	f, err := os.OpenFile(os.DevNull, os.O_WRONLY, 0)
-	if err != nil {
-		log.Println("Could not set logger:", err)
-	} else {
-		log.SetOutput(f)
-	}
+	Log = func(string, ...interface{}) {}
 }
 
 func (s *s) TestCreateIrcClient(c *C) {
